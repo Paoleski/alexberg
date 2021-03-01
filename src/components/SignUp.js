@@ -6,8 +6,7 @@ import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
-import { db, auth } from '../firebase';
+import { db, auth, functions } from '../firebase';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
@@ -34,50 +33,72 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const addProfessorRole = async (email) => {
+  const addProfessorRole = functions.httpsCallable('addProfessorRole');
+  const addedProfessor = await addProfessorRole({ email: email });
+  console.log(addedProfessor);
+};
+
+const addStudentRole = async (email) => {
+  const addStudentRole = functions.httpsCallable('addStudentRole');
+  const addedStudent = await addStudentRole({ email: email });
+  console.log(addedStudent);
+};
+
 const SignUp = () => {
   const classes = useStyles();
+  const [guser, setgUser] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [studentOrProfessor , setStudentOrProfessor] = useState('');
-  const [checkBoxStudentTrueOrFalse, setCheckBoxStudentTrueOrFalse] = useState(false)
-  const [checkBoxProfessorTrueOrFalse, setCheckBoxProfessorTrueOrFalse] = useState(false)
-  const history = useHistory()
-
-
+  const [studentOrProfessor, setStudentOrProfessor] = useState('');
+  const [checkBoxStudentTrueOrFalse, setCheckBoxStudentTrueOrFalse] = useState(
+    false
+  );
+  const [
+    checkBoxProfessorTrueOrFalse,
+    setCheckBoxProfessorTrueOrFalse,
+  ] = useState(false);
+  const history = useHistory();
 
   const handleCheckBox = (e) => {
-    setStudentOrProfessor(e.target.value)
+    setStudentOrProfessor(e.target.value);
     if (e.target.value === 'student') {
-      setCheckBoxStudentTrueOrFalse(true)
-      setCheckBoxProfessorTrueOrFalse(false)
+      setCheckBoxStudentTrueOrFalse(true);
+      setCheckBoxProfessorTrueOrFalse(false);
     } else {
-      setCheckBoxProfessorTrueOrFalse(true)
-      setCheckBoxStudentTrueOrFalse(false)
+      setCheckBoxProfessorTrueOrFalse(true);
+      setCheckBoxStudentTrueOrFalse(false);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-     const user = await auth.createUserWithEmailAndPassword(email, password)
-     if (user) {
-        auth.currentUser.updateProfile({ displayName: firstName })
+      const user = await auth.createUserWithEmailAndPassword(email, password);
+      if (user) {
+        await auth.currentUser.updateProfile({ displayName: firstName });
         await db.collection('users').doc(auth.currentUser.uid).set({
           firstName,
           lastName,
           email,
-          hierarchy:studentOrProfessor,
-        })
+          hierarchy: studentOrProfessor,
+        });
+        if (studentOrProfessor === 'student') {
+          await addStudentRole(email);
+          auth.currentUser.getIdToken(true)
+        } else {
+          await addProfessorRole(email);
+          auth.currentUser.getIdToken(true)
+        }
         history.push('/');
-     }
-     } catch (err) {
-        alert(err)
-     }
-  }
+      }
+    } catch (err) {
+      alert(err);
+    }
+  };
 
- 
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -132,7 +153,6 @@ const SignUp = () => {
                 variant="outlined"
                 required
                 fullWidth
-                
                 name="password"
                 label="Password"
                 onChange={(e) => setPassword(e.target.value)}
@@ -143,14 +163,27 @@ const SignUp = () => {
             </Grid>
             <Grid item xs={6}>
               <FormControlLabel
-                control={<Checkbox value="student" color="primary" checked={checkBoxStudentTrueOrFalse} onChange={(e) => handleCheckBox(e)} />}
+                control={
+                  <Checkbox
+                    value="student"
+                    color="primary"
+                    checked={checkBoxStudentTrueOrFalse}
+                    onChange={(e) => handleCheckBox(e)}
+                  />
+                }
                 label="Student"
-                
               />
             </Grid>
             <Grid item xs={6}>
               <FormControlLabel
-                control={<Checkbox value="professor" color="primary"  checked={checkBoxProfessorTrueOrFalse} onChange={(e) => handleCheckBox(e)} />}
+                control={
+                  <Checkbox
+                    value="professor"
+                    color="primary"
+                    checked={checkBoxProfessorTrueOrFalse}
+                    onChange={(e) => handleCheckBox(e)}
+                  />
+                }
                 label="Professor"
               />
             </Grid>

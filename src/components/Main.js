@@ -17,11 +17,15 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import { mainListItems, secondaryListItems } from './listItems';
 import SignUp from './SignUp';
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import SignIn from './SignIn';
-import { db, auth } from '../firebase';
+import { auth, functions } from '../firebase';
+import Inicial from './Inicial';
+import UnidadeCurricular from './UnidadeCurricular';
+import { useDispatch } from 'react-redux';
+import { setUserGlobal } from '../reducers/userReducer';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const useStyles = makeStyles((theme) => ({
   toolbar: {
@@ -59,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
   },
 
   drawerContainer: {
-    height: 'calc(100vh)',
+    height: '100vh',
   },
   drawerPaper: {
     position: 'relative',
@@ -85,24 +89,43 @@ const useStyles = makeStyles((theme) => ({
   appBarSpacer: theme.mixins.toolbar,
 }));
 
+// const addAdmin = async (email) => {
+//   const addAdminRole = functions.httpsCallable('addAdminRole');
+//   const addedAdmin = await addAdminRole({ email: email })
+//   console.log(addedAdmin)
+
+// };
+
 const Main = () => {
   const classes = useStyles();
-  const [page, setPage] = useState(false);
-  const [user, setUser] = useState(null)
+  const dispatch = useDispatch();
+  const [user, setUser] = useState('');
   const [open, setOpen] = useState(true);
+  // addAdmin('lucas.paoleschi@gmail.com')
   const toggleDrawer = () => {
     setOpen(!open);
   };
 
-  console.log(user)
-
   useEffect(() => {
     auth.onAuthStateChanged((authUser) => {
-      setUser(authUser)
-    })
-  }, [])
-
-
+      if (authUser) {
+        authUser.getIdTokenResult().then(idTokenResult => {
+          console.log(idTokenResult.claims)
+          if (idTokenResult.claims.admin) {
+            authUser.admin = idTokenResult.claims.admin
+          } 
+          if (idTokenResult.claims.professor) {
+            authUser.professor = idTokenResult.claims.professor
+          }
+          if (idTokenResult.claims.student) {
+            authUser.student = idTokenResult.claims.student
+          }
+        })
+        setUser(authUser)
+        dispatch(setUserGlobal(authUser));
+      }
+    });
+  }, []);
 
   return (
     <Router>
@@ -180,16 +203,22 @@ const Main = () => {
             style={{
               flexGrow: 1,
               width: '100%',
-              marginTop: 'calc(2% + 64px)',
+              marginTop: '84px',
               overflow: 'auto',
             }}
           >
             <Switch>
               <Route path="/signIn">
-                <SignIn/>
+                <SignIn />
               </Route>
               <Route path="/signUp">
-                <SignUp/>
+                <SignUp />
+              </Route>
+              <Route path="/unidadeCurricular">
+                <UnidadeCurricular />
+              </Route>
+              <Route path="/">
+                <Inicial />
               </Route>
             </Switch>
           </Box>
