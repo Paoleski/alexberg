@@ -35,19 +35,16 @@ const useStyles = makeStyles((theme) => ({
 
 const addProfessorRole = async (email) => {
   const addProfessorRole = functions.httpsCallable('addProfessorRole');
-  const addedProfessor = await addProfessorRole({ email: email });
-  console.log(addedProfessor);
+  await addProfessorRole({ email: email });
 };
 
 const addStudentRole = async (email) => {
   const addStudentRole = functions.httpsCallable('addStudentRole');
-  const addedStudent = await addStudentRole({ email: email });
-  console.log(addedStudent);
+  await addStudentRole({ email: email });
 };
 
 const SignUp = () => {
   const classes = useStyles();
-  const [guser, setgUser] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -84,13 +81,19 @@ const SignUp = () => {
           lastName,
           email,
           hierarchy: studentOrProfessor,
+          unidadesCurriculares:[],
+          cursos:[],
         });
         if (studentOrProfessor === 'student') {
           await addStudentRole(email);
-          auth.currentUser.getIdToken(true)
+          auth.currentUser.getIdTokenResult().then(idTokenResult => {
+            auth.currentUser.student = true
+          })
         } else {
           await addProfessorRole(email);
-          auth.currentUser.getIdToken(true)
+          auth.currentUser.getIdTokenResult().then(idTokenResult => {
+            auth.currentUser.professor = true
+          })
         }
         history.push('/');
       }

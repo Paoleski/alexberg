@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 export const mainListItems = (
   <div>
-    <ListItem component={Link} to={'/'} button>
+    <ListItem component={Link} to={'/inicial'} button>
       <ListItemIcon>
         <DashboardIcon />
       </ListItemIcon>
@@ -31,11 +31,11 @@ export const mainListItems = (
       </ListItemIcon>
       <ListItemText primary="Ipsum" />
     </ListItem>
-    <ListItem button>
+    <ListItem button component={Link} to={'/profile'}>
       <ListItemIcon>
         <BarChartIcon />
       </ListItemIcon>
-      <ListItemText primary="Lorem" />
+      <ListItemText primary="Perfil" />
     </ListItem>
     <ListItem button>
       <ListItemIcon>
