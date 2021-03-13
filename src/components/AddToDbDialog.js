@@ -5,15 +5,14 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import { db } from '../firebase';
 import { FormControl, InputLabel, MenuItem, Select } from '@material-ui/core';
-import { editUnidadeCurricularFromDb } from '../helpers/getFromDb';
 
-const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
+const AddToDbDialog = ({ updatingFromDb, option, list }) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
-
+  const nameList = list.map((item) => item);
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -22,10 +21,19 @@ const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
     setOpen(false);
   };
 
-  const editarUnidadeCurricular = async () => {
-    await editUnidadeCurricularFromDb(selection, name, year);
-    await updatingFromDb();
-    handleClose();
+  const handleConfirm = async () => {
+    if (nameList.includes(name)) {
+      alert(`${option} já existe, tente outro nome`);
+      handleClose();
+      return;
+    } else {
+      await db.collection(option).add({
+        name,
+        ano: year,
+      });
+      await updatingFromDb();
+      handleClose();
+    }
   };
 
   return (
@@ -36,19 +44,19 @@ const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
         onClick={handleClickOpen}
         fullWidth
       >
-        Editar
+        Adicionar
       </Button>
       <Dialog
         open={open}
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
       >
-        <DialogTitle id="form-dialog-title">Edit</DialogTitle>
         <DialogContent>
-          <DialogContentText>Editar unidade curricular</DialogContentText>
+          <DialogContentText>Adicionar</DialogContentText>
           <TextField
             autoFocus
             margin="dense"
+            required
             onChange={(e) => setName(e.target.value)}
             id="name"
             label="Nome"
@@ -63,6 +71,7 @@ const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
             <Select
               labelId="demo-simple-select-outlined-label"
               id="demo-simple-select-outlined"
+              required
               value={year}
               onChange={(e) => setYear(e.target.value)}
               label="Ano"
@@ -76,10 +85,10 @@ const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
-            Cancelar
+            Cancel
           </Button>
-          <Button onClick={editarUnidadeCurricular} color="primary">
-            Confirmar
+          <Button onClick={handleConfirm} color="primary">
+            Add
           </Button>
         </DialogActions>
       </Dialog>
@@ -87,4 +96,4 @@ const EditarUnidadeCurricular = ({ selection, updatingFromDb }) => {
   );
 };
 
-export default EditarUnidadeCurricular;
+export default AddToDbDialog;

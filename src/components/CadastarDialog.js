@@ -9,7 +9,7 @@ import { db } from '../firebase';
 import { useSelector } from 'react-redux';
 import firebase from 'firebase';
 
-const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
+const CadastrarDialog = ({ selection, disabled, updatingFromDb, option }) => {
   const [open, setOpen] = useState(false);
   const user = useSelector((state) => state);
 
@@ -21,19 +21,18 @@ const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
     setOpen(false);
   };
 
-
-  const removerCadastroNasUnidadesCurriculares = async () => {
+  const handleConfirm = async () => {
     await db
       .collection('users')
       .doc(user.uid)
       .update({
-        unidadesCurriculares: firebase.firestore.FieldValue.arrayRemove(
+        [option]: firebase.firestore.FieldValue.arrayUnion(
           ...selection
         ),
       });
+    updatingFromDb()
     handleClose();
   };
-
   return (
     <div style={{ marginTop: 10 }}>
       <Button
@@ -43,7 +42,7 @@ const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
         disabled={disabled}
         onClick={handleClickOpen}
       >
-        Remover cadastro
+        Cadastrar
       </Button>
       <Dialog
         open={open}
@@ -56,7 +55,7 @@ const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
         <DialogContent>
           {selection && (
             <DialogContentText id="alert-dialog-description">
-              Tem certeza que quer remover seu cadastro nas seguintes unidades
+              Tem certeza que quer se cadastrar nas seguintes unidades
               curriculares: {selection.map((uc) => `"${uc}"`).join(', ')} ?
             </DialogContentText>
           )}
@@ -65,7 +64,7 @@ const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
           <Button onClick={handleClose} color="primary">
             Cancelar
           </Button>
-          <Button onClick={removerCadastroNasUnidadesCurriculares} color="primary">
+          <Button onClick={handleConfirm} color="primary">
             Confirmar
           </Button>
         </DialogActions>
@@ -74,4 +73,4 @@ const RemoverCadastroUnidadeCurricular = ({ selection, disabled }) => {
   );
 };
 
-export default RemoverCadastroUnidadeCurricular;
+export default CadastrarDialog;

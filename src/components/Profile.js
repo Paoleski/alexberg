@@ -13,7 +13,7 @@ import {
   makeStyles,
 } from '@material-ui/core';
 import { useSelector } from 'react-redux';
-import { getUserFromDb, updateProfileOnDb } from '../helpers/getFromDb';
+import { getUserProfileFromDb, updateProfileOnDb } from '../helpers/getFromDb';
 import ConfirmarEditProfile from './ConfirmarEditProfile';
 
 const useStyles = makeStyles(() => ({
@@ -42,7 +42,7 @@ const Profile = ({ className, ...rest }) => {
 
   useEffect(() => {
     const getUserProfile = async () => {
-      const userP = await getUserFromDb(user.uid);
+      const userP = await getUserProfileFromDb(user.uid);
       setUserProfile({
         firstName: userP.firstName,
         lastName: userP.lastName,

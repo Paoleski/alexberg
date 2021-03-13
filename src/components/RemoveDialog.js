@@ -5,11 +5,13 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { removeUnidadesCurricularesFromDb } from '../helpers/getFromDb';
+import { db } from '../firebase';
+import { useSelector } from 'react-redux';
+import firebase from 'firebase';
 
-const RemoverUnidadeCurricular = ({ selection, updatingFromDb }) => {
+const RemoveDialog = ({ selection, disabled, updatingFromDb, option }) => {
   const [open, setOpen] = useState(false);
-
+  const user = useSelector((state) => state);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -19,22 +21,27 @@ const RemoverUnidadeCurricular = ({ selection, updatingFromDb }) => {
     setOpen(false);
   };
 
-  const removerUnidadesCurriculares = async () => {
-    console.log(`removing`)
-    await removeUnidadesCurricularesFromDb(selection);
-    await updatingFromDb()
-    handleClose()
+  const handleConfirm = async () => {
+    await db
+      .collection('users')
+      .doc(user.uid)
+      .update({
+        [option]: firebase.firestore.FieldValue.arrayRemove(...selection),
+      });
+    updatingFromDb();
+    handleClose();
   };
 
   return (
-    <div style={{marginTop:10}}>
+    <div style={{ marginTop: 10 }}>
       <Button
         color="primary"
         variant="contained"
         fullWidth
+        disabled={disabled}
         onClick={handleClickOpen}
       >
-        Remover
+        Remover cadastro
       </Button>
       <Dialog
         open={open}
@@ -43,19 +50,14 @@ const RemoverUnidadeCurricular = ({ selection, updatingFromDb }) => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-slide-title">
-          {"Remover"}
-        </DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
-            Tem certeza que quer remover as unidades curriculares: {selection.map(uc => `"${uc}"`).join(', ')} ?
-          </DialogContentText>
+          Tem certeza que quer remover o(s) cadastro(s) ?
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancelar
           </Button>
-          <Button onClick={removerUnidadesCurriculares} color="primary">
+          <Button onClick={handleConfirm} color="primary">
             Confirmar
           </Button>
         </DialogActions>
@@ -64,4 +66,4 @@ const RemoverUnidadeCurricular = ({ selection, updatingFromDb }) => {
   );
 };
 
-export default RemoverUnidadeCurricular;
+export default RemoveDialog;

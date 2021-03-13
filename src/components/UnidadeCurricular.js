@@ -9,16 +9,16 @@ import {
 import { DataGrid } from '@material-ui/data-grid';
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import AddUnidadeCurricular from './AddUnidadeCurricular';
+import AddUnidadeCurricular from './AddToDbDialog';
 import {
-  getUserFromDb,
-  getUnidadesCurricularesFromDb,
+  getDocsFromDb,
+  getUserProfileFromDb,
 } from '../helpers/getFromDb';
-import RemoverUnidadeCurricular from './RemoverUnidadeCurricular';
-import EditarUnidadeCurricular from './EditarUnidadeCurricular';
-import CadastrarUnidadeCurricular from './CadastrarUnidadeCurricular';
+import RemoverUnidadeCurricular from './RemoverFromDb';
+import EditarUnidadeCurricular from './EditarOnDb';
+import CadastrarDialog from './CadastarDialog';
 import '../styles/unidadesCurriculares.css';
-import RemoverCadastroUnidadeCurricular from './RemoverCadastroUnidadeCurricular';
+import RemoverCadastroUnidadeCurricular from './RemoveDialog';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -27,12 +27,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const adminList = (selection, updatingFromDb) => {
+const adminList = (selection, updatingFromDb, unidadesCurriculares) => {
   return (
     <Grid item xs={3}>
-      <AddUnidadeCurricular updatingFromDb={updatingFromDb} />
+      <AddUnidadeCurricular option="unidadesCurriculares" updatingFromDb={updatingFromDb} list={unidadesCurriculares} />
       {selection.length === 1 && (
         <EditarUnidadeCurricular
+          option="unidadesCurriculares"
           selection={selection}
           updatingFromDb={updatingFromDb}
         />
@@ -47,16 +48,18 @@ const adminList = (selection, updatingFromDb) => {
   );
 };
 
-const usersList = (selection) => {
-  console.log(selection)
+const usersList = (selection, updatingFromDb) => {
   return (
     <Grid item xs={3}>
-      <CadastrarUnidadeCurricular
+      <CadastrarDialog
         disabled={selection.length > 0 ? false : true}
         selection={selection}
+        updatingFromDb={updatingFromDb}
+        option="unidadesCurriculares"
       />
       <RemoverCadastroUnidadeCurricular disabled={selection.length > 0 ? false : true}
       selection={selection}
+      updatingFromDb={updatingFromDb}
        />
     </Grid>
   );
@@ -92,7 +95,7 @@ const UnidadeCurricular = () => {
   useEffect(() => {
     const getFromDb = async () => {
       if (user) {
-        const ucs = await getUnidadesCurricularesFromDb();
+        const ucs = await getDocsFromDb("unidadesCurriculares");
         const newUcs = await checkStatus(ucs);
         setUnidadesCurriculares(newUcs);
       }
@@ -101,16 +104,19 @@ const UnidadeCurricular = () => {
   }, [user]);
 
   const updatingFromDb = async () => {
-    setUnidadesCurriculares(await getUnidadesCurricularesFromDb());
+    const ucs = await getDocsFromDb("unidadesCurriculares")
+    setUnidadesCurriculares(await checkStatus(ucs))
+    setSelection([])
+    
   };
 
   const checkStatus = async (ucs) => {
     if (user) {
-      const getFromDb = await getUserFromDb(
+      const getFromDb = await getUserProfileFromDb(
         user.uid
       );
       ucs.map((uc) => {
-        if (getFromDb.unidadesCurriculares.includes(uc.name)) {
+        if (getFromDb.unidadesCurriculares.includes(uc.id)) {
           return (uc.status = 'Cadastrado');
         } else {
           return (uc.status = 'Não Cadastrado');
@@ -139,9 +145,9 @@ const UnidadeCurricular = () => {
             />
           </Grid>
      
-        {user?.admin && adminList(selection, updatingFromDb)}
-        {user?.student && usersList(selection)}
-        {user?.professor && usersList(selection)}
+        {user?.admin && adminList(selection, updatingFromDb, unidadesCurriculares)}
+        {user?.student && usersList(selection, updatingFromDb)}
+        {user?.professor && usersList(selection, updatingFromDb)}
       </Grid>
     </Container>
   );

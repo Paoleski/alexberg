@@ -32,8 +32,9 @@ import { useDispatch } from 'react-redux';
 import { setUserGlobal } from '../reducers/userReducer';
 import InputIcon from '@material-ui/icons/Input';
 import { Grid } from '@material-ui/core';
-import CheckUser from '../helpers/CheckUser';
 import Profile from './Profile';
+import TempDialog from './TempDialog';
+import Cursos from './Cursos';
 
 const drawerWidth = 260;
 
@@ -149,8 +150,6 @@ const Main = () => {
     }
   };
 
-  
-
   return (
     <div className="main">
       <Box sx={{ display: 'flex' }} style={{ display: 'flex' }}>
@@ -215,7 +214,7 @@ const Main = () => {
           </div>
           <Divider />
           {user && <List>{mainListItems}</List>}
-          
+
           <Divider />
           <List>{secondaryListItems}</List>
         </Drawer>
@@ -239,6 +238,7 @@ const Main = () => {
             overflow: 'auto',
           }}
         >
+          <TempDialog />
           <Switch>
             <Route path="/signIn">
               <SignIn />
@@ -248,6 +248,9 @@ const Main = () => {
             </Route>
             <Route path="/unidadeCurricular">
               <UnidadeCurricular />
+            </Route>
+            <Route path="/cursos">
+              <Cursos/>
             </Route>
             <Route path="/inicial">
               <Inicial user={user} />

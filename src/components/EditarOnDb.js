@@ -5,11 +5,10 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import { db } from '../firebase';
 import { FormControl, InputLabel, MenuItem, Select } from '@material-ui/core';
+import { editOnDb } from '../helpers/getFromDb';
 
-const AddUnidadeCurricular = ({ updatingFromDb }) => {
+const EditarOnDb = ({ selection, updatingFromDb, option }) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [year, setYear] = useState('');
@@ -22,21 +21,9 @@ const AddUnidadeCurricular = ({ updatingFromDb }) => {
     setOpen(false);
   };
 
-  const addToDb = async () => {
-    const dataRef = await db.collection('unidadesCurriculares').doc(name).get();
-    console.log(dataRef);
-    if (dataRef.exists) {
-      alert('Unidade Curricular já existe');
-      handleClose();
-      return;
-    } else {
-      await db.collection('unidadesCurriculares').doc(name).set({
-        name,
-        ano: year,
-        id: name,
-      });
-      await updatingFromDb();
-    }
+  const handleConfirm = async () => {
+    await editOnDb(selection, name, year, option);
+    await updatingFromDb();
     handleClose();
   };
 
@@ -48,16 +35,15 @@ const AddUnidadeCurricular = ({ updatingFromDb }) => {
         onClick={handleClickOpen}
         fullWidth
       >
-        Adicionar
+        Editar
       </Button>
       <Dialog
         open={open}
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
       >
-        <DialogTitle id="form-dialog-title">Add</DialogTitle>
         <DialogContent>
-          <DialogContentText>Adicionar unidade curricular</DialogContentText>
+          <DialogContentText>Editar unidade curricular</DialogContentText>
           <TextField
             autoFocus
             margin="dense"
@@ -88,10 +74,10 @@ const AddUnidadeCurricular = ({ updatingFromDb }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
-            Cancel
+            Cancelar
           </Button>
-          <Button onClick={addToDb} color="primary">
-            Add
+          <Button onClick={handleConfirm} color="primary">
+            Confirmar
           </Button>
         </DialogActions>
       </Dialog>
@@ -99,4 +85,4 @@ const AddUnidadeCurricular = ({ updatingFromDb }) => {
   );
 };
 
-export default AddUnidadeCurricular;
+export default EditarOnDb;

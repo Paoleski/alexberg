@@ -5,13 +5,11 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import { db } from '../firebase';
-import { useSelector } from 'react-redux';
-import firebase from 'firebase';
+import { removeFromDb } from '../helpers/getFromDb';
 
-const CadastrarUnidadeCurricular = ({ selection, disabled }) => {
+const RemoverFromDb = ({ selection, updatingFromDb, option }) => {
   const [open, setOpen] = useState(false);
-  const user = useSelector((state) => state);
+
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -21,27 +19,21 @@ const CadastrarUnidadeCurricular = ({ selection, disabled }) => {
     setOpen(false);
   };
 
-  const cadastrarUnidadesCurriculares = async () => {
-    await db
-      .collection('users')
-      .doc(user.uid)
-      .update({
-        unidadesCurriculares: firebase.firestore.FieldValue.arrayUnion(
-          ...selection
-        ),
-      });
-    handleClose();
+  const handleConfirm = async () => {
+    await removeFromDb(selection, option);
+    await updatingFromDb()
+    handleClose()
   };
+
   return (
-    <div style={{ marginTop: 10 }}>
+    <div style={{marginTop:10}}>
       <Button
         color="primary"
         variant="contained"
         fullWidth
-        disabled={disabled}
         onClick={handleClickOpen}
       >
-        Cadastrar
+        Remover
       </Button>
       <Dialog
         open={open}
@@ -50,20 +42,16 @@ const CadastrarUnidadeCurricular = ({ selection, disabled }) => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog--title">{'Remover'}</DialogTitle>
         <DialogContent>
-          {selection && (
-            <DialogContentText id="alert-dialog-description">
-              Tem certeza que quer se cadastrar nas seguintes unidades
-              curriculares: {selection.map((uc) => `"${uc}"`).join(', ')} ?
-            </DialogContentText>
-          )}
+          <DialogContentText id="alert-dialog-slide-description">
+            Tem certeza que quer remover ?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary">
             Cancelar
           </Button>
-          <Button onClick={cadastrarUnidadesCurriculares} color="primary">
+          <Button onClick={handleConfirm} color="primary">
             Confirmar
           </Button>
         </DialogActions>
@@ -72,4 +60,4 @@ const CadastrarUnidadeCurricular = ({ selection, disabled }) => {
   );
 };
 
-export default CadastrarUnidadeCurricular;
+export default RemoverFromDb;
